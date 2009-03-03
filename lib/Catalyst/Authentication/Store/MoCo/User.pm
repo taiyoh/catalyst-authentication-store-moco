@@ -143,7 +143,10 @@ sub roles {
 sub for_session {
     my $self = shift;
 
-    my %userdata = $self->_user->get_columns();
+    my %userdata = eval { $self->_user->get_columns() };
+    unless (%userdata) {
+        %userdata = map { $_ => $self->_user->{$_} } @{ $self->_user->columns };
+    }
     return \%userdata;
 }
 
