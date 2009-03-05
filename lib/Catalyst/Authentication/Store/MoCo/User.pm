@@ -107,7 +107,6 @@ sub supported_features {
     };
 }
 
-# これ使ったら絶対に落ちる。なぜなら、使うメソッドはDBICのときのまま…
 sub roles {
     my ( $self ) = shift;
     ## this used to load @wantedroles - but that doesn't seem to be used by the roles plugin, so I dropped it.
@@ -126,9 +125,10 @@ sub roles {
         $self->_roles(\@roles);
     } elsif (exists($self->config->{'role_relation'})) {
         my $relation = $self->config->{'role_relation'};
-        if ($self->_user->$relation->has_column($self->config->{'role_field'})) {
-            @roles = map { $_->{$self->config->{'role_field'}} } $self->_user->$relation->search(undef, { columns => [ $self->config->{'role_field'}]})->all();
-            $self->_roles(\@roles);
+        my $rel = $self->_user->$relation;
+        my $rf = $self->config->{'role_field'};
+        if ($rel->has_column($rf)) {
+            $self->_roles([ $rel->retrieve_all->map(sub { shift->{$rf} }) ]);
         } else {
             Catalyst::Exception->throw("role table does not have a column called " . $self->config->{'role_field'});
         }
