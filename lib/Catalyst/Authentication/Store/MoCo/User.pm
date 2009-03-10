@@ -107,8 +107,6 @@ sub supported_features {
     };
 }
 
-use YAML qw/Dump/;
-
 sub roles {
     my ( $self ) = shift;
     ## this used to load @wantedroles - but that doesn't seem to be used by the roles plugin, so I dropped it.
