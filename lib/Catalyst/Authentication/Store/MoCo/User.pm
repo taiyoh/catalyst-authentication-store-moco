@@ -55,8 +55,8 @@ sub load {
 
     my $moco_config = 0;
 
-    if (exists($authinfo->{'dbix_class'})) {
-        $authinfo = $authinfo->{'dbix_class'};
+    if (exists($authinfo->{'moco'})) {
+        $authinfo = $authinfo->{'moco'};
         $moco_config = 1;
     }
 
@@ -107,6 +107,8 @@ sub supported_features {
     };
 }
 
+use YAML qw/Dump/;
+
 sub roles {
     my ( $self ) = shift;
     ## this used to load @wantedroles - but that doesn't seem to be used by the roles plugin, so I dropped it.
@@ -127,8 +129,9 @@ sub roles {
         my $relation = $self->config->{'role_relation'};
         my $rel = $self->_user->$relation;
         my $rf = $self->config->{'role_field'};
-        if ($rel->has_column($rf)) {
-            $self->_roles([ $rel->retrieve_all->map(sub { shift->{$rf} }) ]);
+        my @roles = $rel->map( sub { $_->$relation->first } );
+        if ($roles[0]->has_column($rf)) {
+            $self->_roles([ map { $_->{$rf} } @roles ]);
         } else {
             Catalyst::Exception->throw("role table does not have a column called " . $self->config->{'role_field'});
         }
